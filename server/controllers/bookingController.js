@@ -1,6 +1,6 @@
-const Booking = require('../models/bookingmodel');
+const Booking = require('../models/Bookingmodel');
 const OTP = require('../models/OTP');
-const Event = require('../models/eventmodel');
+const Event = require('../models/Eventmodel');
 const { sendOTPEmail, sendBookingEmail } = require('../utils/email');  
 
 const generateOTP = () => {

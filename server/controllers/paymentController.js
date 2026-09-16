@@ -1,7 +1,7 @@
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
-const Booking = require('../models/bookingmodel');
-const Event = require('../models/eventmodel');
+const Booking = require('../models/Bookingmodel');
+const Event = require('../models/Eventmodel');
 const { sendBookingEmail } = require('../utils/email');
 
 // Check environment variables at startup

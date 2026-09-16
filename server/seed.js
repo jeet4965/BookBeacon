@@ -2,8 +2,8 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const bcrypt = require('bcryptjs');
 const User = require('./models/User');
-const Event = require('./models/eventmodel');
-const Booking = require('./models/bookingmodel');
+const Event = require('./models/Eventmodel');
+const Booking = require('./models/Bookingmodel');
 
 dotenv.config();
 const users = [
