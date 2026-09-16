@@ -1,0 +1,13 @@
+{
+  "name": "bookbeacon",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "install:all": "npm install --prefix client && npm install --prefix server",
+    "dev": "concurrently --kill-others-on-fail \"npm run dev --prefix client\" \"npm run dev --prefix server\"",
+    "start": "concurrently --kill-others-on-fail \"npm run preview --prefix client\" \"npm run start --prefix server\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
