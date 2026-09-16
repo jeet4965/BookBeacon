@@ -46,7 +46,7 @@ const EventDetail = () => {
                 setShowOTP(false);
             }
         } catch (err) {
-            setError(err.response?.data?.message || 'Booking transmission failed');
+            setError(err.response?.data?.error || err.response?.data?.message || 'Booking transmission failed');
         } finally {
             setBookingLoading(false);
         }

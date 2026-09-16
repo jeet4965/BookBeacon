@@ -8,11 +8,16 @@ const generateOTP = () => {
 };
 
 exports.sendBookingOTP = async (req, res) => {
-    const otp = generateOTP();
-    await OTP.findOneAndDelete({ email: req.user.email, action: 'event_booking' });
-    await OTP.create({ email: req.user.email, otp, action: 'event_booking' });
-    await sendOTPEmail(req.user.email, otp, 'event_booking');
-    res.json({ message: 'OTP sent to your email for booking confirmation.' });
+    try {
+        const otp = generateOTP();
+        await OTP.findOneAndDelete({ email: req.user.email, action: 'event_booking' });
+        await OTP.create({ email: req.user.email, otp, action: 'event_booking' });
+        await sendOTPEmail(req.user.email, otp, 'event_booking');
+        res.json({ message: 'OTP sent to your email for booking confirmation.' });
+    } catch (error) {
+        console.error(`Unable to send booking OTP to ${req.user.email}:`, error.message);
+        res.status(503).json({ error: 'We could not send the booking OTP. Please try again shortly.' });
+    }
 };
 
 exports.bookEvent = async (req, res) => {

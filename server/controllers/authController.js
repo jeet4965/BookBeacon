@@ -8,12 +8,28 @@ const generateToken = (id, role) => {
     return jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: '7d' });
 }
 
+const sendVerificationOTP = async (email) => {
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    await OTP.deleteMany({ email, action: 'account_verification' });
+    await OTP.create({ email, otp, action: 'account_verification' });
+    await sendOTPEmail(email, otp, 'account_verification');
+};
+
 
 // Register a new user
 exports.registerUser = async (req, res) => {
     const { name, email, password } = req.body;
     let userExists = await User.findOne({ email });
     if (userExists) {
+        if (!userExists.isVerified) {
+            try {
+                await sendVerificationOTP(email);
+                return res.status(200).json({ message: 'A new verification OTP has been sent.', email });
+            } catch (error) {
+                console.error(`Unable to resend verification OTP to ${email}:`, error.message);
+                return res.status(503).json({ error: 'We could not send the verification email. Please try again shortly.' });
+            }
+        }
         return res.status(400).json({ error: 'User already exists' });
     }
     const salt = await bcrypt.genSalt(10);
@@ -21,17 +37,15 @@ exports.registerUser = async (req, res) => {
     try {
         const user = await User.create({ name, email, password: hashedPassword, role: 'user', isVerified: false });
 
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        console.log(`Generated OTP for ${email}: ${otp}`);
-        await OTP.create({ email, otp, action: 'account_verification' });
-        await sendOTPEmail(email, otp, 'account_verification');
+        await sendVerificationOTP(email);
 
         res.status(201).json({ message: 'User registered successfully. Please verify your email.',
         email: user.email
         });
 
     } catch (error) {
-        res.status(500).json({ error: 'Error registering user' });
+        console.error(`Registration failed for ${email}:`, error.message);
+        res.status(503).json({ error: 'Account created, but the verification email could not be sent. Sign in to request another OTP.' });
     }
 };
 
@@ -51,12 +65,16 @@ exports.loginUser = async (req, res) => {
     }
 
     if (!user.isVerified && user.role === 'user') {
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        await OTP.deleteMany({ email, action: 'account_verification' }); // Remove any existing OTPs for this email
-
-        await OTP.create({ email, otp, action: 'account_verification' });
-        await sendOTPEmail(email, otp, 'account_verification');
-        return res.status(403).json({ error: 'Account not verified. Please check your email for the OTP to verify your account.' });
+        try {
+            await sendVerificationOTP(email);
+        } catch (error) {
+            console.error(`Unable to send verification OTP to ${email}:`, error.message);
+            return res.status(503).json({ error: 'We could not send the verification email. Please try again shortly.' });
+        }
+        return res.status(403).json({
+            error: 'Account not verified. Please check your email for the OTP to verify your account.',
+            needsVerification: true,
+        });
     }
 
     res.json({ 
