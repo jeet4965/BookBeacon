@@ -3,7 +3,10 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const transporter = nodeMailer.createTransport({
-    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    family: 4,
     pool: true,
     maxConnections: 1,
     maxMessages: 100,
